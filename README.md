@@ -1,4 +1,4 @@
-# ChiShiri AI: Smart Mining Safety & Environmental Compliance Guardian
+# Zisoregondo AI: Smart Mining Safety & Environmental Compliance Guardian
 
 [cite_start]Ziso reGondo AI (derived from the Shona word *ziso*, meaning 'eagle eye') is an offline-capable, low-cost AI and IoT ecosystem designed to address critical safety, environmental management, and regulatory compliance challenges within the mining sector[cite: 28, 29, 32, 51]. [cite_start]Built specifically for resource-constrained environments with intermittent power and internet connectivity, the system empowers both artisanal small-scale miners (ASM) and large-scale industrial operations to safeguard worker dignity and preserve environmental health[cite: 33, 36, 37, 239].
 
