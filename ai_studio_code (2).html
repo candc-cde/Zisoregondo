@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChiShiri AI | Mining Site Dashboard</title>
+    <style>
+        /* Essential non-inlineable styles (Animations & Pseudo-classes) */
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* Hide Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animations */
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hazard-enter { animation: fade-in 0.3s ease-out forwards; }
+        
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+        .animate-ping { animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        /* Form elements */
+        button:hover { filter: brightness(1.1); }
+        select option { background-color: #1e293b; color: #fff; }
+    </style>
+</head>
+<body style="background-color: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 1.5rem; display: flex; flex-direction: column;">
+
+    <!-- Header / Global State -->
+    <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; background-color: #1e293b; border-radius: 0.75rem; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+        
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="padding: 0.5rem; background-color: rgba(16, 185, 129, 0.2); border-radius: 0.5rem;">
+                <svg style="width: 2rem; height: 2rem; color: #34d399;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin: 0; letter-spacing: 0.025em;">ChiShiri AI</h1>
+                <p style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Edge Monitoring Node</p>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; font-size: 0.875rem; font-weight: 500;">
+            <!-- System Status -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background-color: #0f172a; border-radius: 0.375rem; border: 1px solid #334155;">
+                <span style="color: #94a3b8;">System:</span>
+                <span id="sys-status-indicator" style="position: relative; display: flex; height: 0.75rem; width: 0.75rem;">
+                    <span class="animate-ping" style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: #fbbf24; opacity: 0.75;"></span>
+                    <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.75rem; width: 0.75rem; background-color: #f59e0b;"></span>
+                </span>
+                <span id="sys-status-text" style="color: #fbbf24;">Offline (Edge Mode)</span>
+            </div>
+
+            <!-- Power Status -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background-color: #0f172a; border-radius: 0.375rem; border: 1px solid #334155;">
+                <svg style="width: 1rem; height: 1rem; color: #fcd34d;" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                </svg>
+                <span style="color: #94a3b8;">Power:</span>
+                <span style="color: #34d399;">Solar Battery</span>
+            </div>
+
+            <!-- Language Toggle -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; background-color: #0f172a; border-radius: 0.375rem; border: 1px solid #334155;">
+                <svg style="width: 1rem; height: 1rem; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                </svg>
+                <select id="lang-select" style="background-color: transparent; color: #ffffff; border: none; outline: none; cursor: pointer; padding: 0.25rem; font-family: inherit;">
+                    <option value="en">English</option>
+                    <option value="sn">Shona</option>
+                    <option value="nd">Ndebele</option>
+                </select>
+            </div>
+
+            <!-- Simulation Toggle -->
+            <button id="sim-btn" onclick="toggleSimulation()" style="padding: 0.5rem 1rem; background-color: #2563eb; color: #ffffff; border-radius: 0.375rem; border: none; font-weight: 500; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                Enable Simulation Mode
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Grid -->
+    <main style="display: flex; flex-wrap: wrap; gap: 1.5rem; flex: 1;">
+        
+        <!-- Left Column: Telemetry Cards -->
+        <div class="scrollbar-hide" style="flex: 2 1 600px; display: flex; flex-wrap: wrap; gap: 1.5rem; align-content: flex-start; overflow-y: auto;">
+            
+            <!-- Air Quality Card (PM2.5) -->
+            <div style="flex: 1 1 260px; background-color: #1e293b; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="padding: 0.75rem; background-color: rgba(59, 130, 246, 0.2); border-radius: 0.5rem; color: #60a5fa;">
+                            <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18M3 9h18M3 21h18"></path></svg>
+                        </div>
+                        <h2 style="font-size: 1.125rem; font-weight: 600; color: #cbd5e1; margin: 0;">Air Quality (PM2.5)</h2>
+                    </div>
+                    <span id="pm25-status" style="padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; background-color: #0f172a; color: #64748b;">STANDBY</span>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; align-items: flex-end; gap: 0.5rem;">
+                    <span id="pm25-value" style="font-size: 3rem; font-weight: 700; color: #ffffff; line-height: 1;">--</span>
+                    <span style="color: #94a3b8; font-size: 1.125rem; margin-bottom: 0.25rem;">µg/m³</span>
+                </div>
+            </div>
+
+            <!-- Air Quality Card (CO) -->
+            <div style="flex: 1 1 260px; background-color: #1e293b; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="padding: 0.75rem; background-color: rgba(168, 85, 247, 0.2); border-radius: 0.5rem; color: #c084fc;">
+                            <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"></path></svg>
+                        </div>
+                        <h2 style="font-size: 1.125rem; font-weight: 600; color: #cbd5e1; margin: 0;">Carbon Monoxide</h2>
+                    </div>
+                    <span id="co-status" style="padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; background-color: #0f172a; color: #64748b;">STANDBY</span>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; align-items: flex-end; gap: 0.5rem;">
+                    <span id="co-value" style="font-size: 3rem; font-weight: 700; color: #ffffff; line-height: 1;">--</span>
+                    <span style="color: #94a3b8; font-size: 1.125rem; margin-bottom: 0.25rem;">ppm</span>
+                </div>
+            </div>
+
+            <!-- Water Quality Card (pH) -->
+            <div style="flex: 1 1 260px; background-color: #1e293b; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="padding: 0.75rem; background-color: rgba(6, 182, 212, 0.2); border-radius: 0.5rem; color: #22d3ee;">
+                            <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        </div>
+                        <h2 style="font-size: 1.125rem; font-weight: 600; color: #cbd5e1; margin: 0;">Water Quality (pH)</h2>
+                    </div>
+                    <span id="ph-status" style="padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; background-color: #0f172a; color: #64748b;">STANDBY</span>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; align-items: flex-end; gap: 0.5rem;">
+                    <span id="ph-value" style="font-size: 3rem; font-weight: 700; color: #ffffff; line-height: 1;">--</span>
+                    <span style="color: #94a3b8; font-size: 1.125rem; margin-bottom: 0.25rem;">pH</span>
+                </div>
+            </div>
+
+            <!-- Structural Stability Card (Vibration) -->
+            <div style="flex: 1 1 260px; background-color: #1e293b; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="padding: 0.75rem; background-color: rgba(249, 115, 22, 0.2); border-radius: 0.5rem; color: #fb923c;">
+                            <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <h2 style="font-size: 1.125rem; font-weight: 600; color: #cbd5e1; margin: 0;">Structural Vibration</h2>
+                    </div>
+                    <span id="vib-status" style="padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; background-color: #0f172a; color: #64748b;">STANDBY</span>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; align-items: flex-end; gap: 0.5rem;">
+                    <span id="vib-value" style="font-size: 3rem; font-weight: 700; color: #ffffff; line-height: 1;">--</span>
+                    <span style="color: #94a3b8; font-size: 1.125rem; margin-bottom: 0.25rem;">Hz</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Hazard Detection Feed -->
+        <div style="flex: 1 1 350px; background-color: #1e293b; border-radius: 0.75rem; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; min-height: 350px;">
+            <div style="padding: 1rem 1.5rem; border-bottom: 1px solid #334155; background-color: rgba(15, 23, 42, 0.4); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg style="width: 1.25rem; height: 1.25rem; color: #f43f5e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <h2 style="font-size: 1.125rem; font-weight: 700; color: #ffffff; margin: 0;">CV Hazard Feed</h2>
+                </div>
+                <span style="position: relative; display: flex; height: 0.5rem; width: 0.5rem;">
+                    <span class="animate-ping" style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: #fb7185; opacity: 0.75;"></span>
+                    <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.5rem; width: 0.5rem; background-color: #f43f5e;"></span>
+                </span>
+            </div>
+            
+            <ul id="hazard-feed" class="scrollbar-hide" style="padding: 1rem; flex: 1; overflow-y: auto; list-style: none; display: flex; flex-direction: column; gap: 0.75rem;">
+                <li id="empty-state" style="text-align: center; color: #64748b; font-style: italic; margin-top: 2rem; font-size: 0.875rem;">Waiting for camera telemetry...</li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- Vanilla JavaScript Application Logic -->
+    <script>
+        // --- 1. Language Translation Dictionary ---
+        const translations = {
+            en: {
+                "missing_ppe": "Missing PPE Detected",
+                "structural_crack": "Structural Crack Identified",
+                "unauthorized_access": "Unauthorized Area Access",
+                "smoke_fire": "Smoke or Fire Detected"
+            },
+            sn: {
+                "missing_ppe": "Munhu Asina PPE Aonekwa",
+                "structural_crack": "Kutsemuka Kwekuvaka Kwaonekwa",
+                "unauthorized_access": "Kupinda Pasingabvumirwi",
+                "smoke_fire": "Utsi kana Moto Zvaonekwa"
+            },
+            nd: {
+                "missing_ppe": "Umuntu Ongela PPE Ubonakele",
+                "structural_crack": "Ukuqhekeka Kwesakhiwo Kubonakele",
+                "unauthorized_access": "Ukungena Endaweni Engavunyelwanga",
+                "smoke_fire": "Intuthu Kumbe Umlilo Ubonakele"
+            }
+        };
+
+        const hazardKeys = Object.keys(translations.en);
+
+        // --- 2. Global State ---
+        let currentLanguage = 'en';
+        let isSimulating = false;
+        let simInterval = null;
+
+        // --- 3. DOM Elements ---
+        const els = {
+            pm25Val: document.getElementById('pm25-value'),
+            pm25Stat: document.getElementById('pm25-status'),
+            coVal: document.getElementById('co-value'),
+            coStat: document.getElementById('co-status'),
+            phVal: document.getElementById('ph-value'),
+            phStat: document.getElementById('ph-status'),
+            vibVal: document.getElementById('vib-value'),
+            vibStat: document.getElementById('vib-status'),
+            hazardFeed: document.getElementById('hazard-feed'),
+            emptyState: document.getElementById('empty-state'),
+            langSelect: document.getElementById('lang-select'),
+            simBtn: document.getElementById('sim-btn'),
+            sysStatText: document.getElementById('sys-status-text'),
+            sysStatIndicator: document.getElementById('sys-status-indicator')
+        };
+
+        // --- 4. Event Listeners ---
+        els.langSelect.addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            updateHazardTranslations();
+        });
+
+        function updateHazardTranslations() {
+            const hazardElements = document.querySelectorAll('.hazard-text');
+            hazardElements.forEach(el => {
+                const key = el.getAttribute('data-hazard-key');
+                if (translations[currentLanguage][key]) {
+                    el.textContent = translations[currentLanguage][key];
+                }
+            });
+        }
+
+        // --- 5. Core Data Input Logic ---
+        function updateDashboard(data) {
+            // Update UI Cards with inline style coloring logic
+            updateTelemetryCard(els.pm25Val, els.pm25Stat, data.air_pm25, { warn: 35, crit: 55 }, false);
+            updateTelemetryCard(els.coVal, els.coStat, data.air_co, { warn: 9, crit: 25 }, false);
+            updateWaterQuality(data.water_ph);
+            updateTelemetryCard(els.vibVal, els.vibStat, data.vibration, { warn: 10, crit: 20 }, false);
+
+            if (data.hazard_event) {
+                appendHazardAlert(data.hazard_event);
+            }
+        }
+
+        function updateTelemetryCard(valEl, statEl, value, limits, inverse) {
+            valEl.textContent = value.toFixed(1);
+            
+            let status = "NORMAL";
+            let colorHex = "#34d399"; // Emerald
+            let bgHex = "rgba(16, 185, 129, 0.2)";
+
+            let isWarn = inverse ? value < limits.warn : value >= limits.warn;
+            let isCrit = inverse ? value < limits.crit : value >= limits.crit;
+
+            if (isCrit) {
+                status = "DANGER";
+                colorHex = "#fb7185"; // Rose
+                bgHex = "rgba(244, 63, 94, 0.2)";
+            } else if (isWarn) {
+                status = "WARNING";
+                colorHex = "#fbbf24"; // Amber
+                bgHex = "rgba(245, 158, 11, 0.2)";
+            }
+
+            valEl.style.color = status === "NORMAL" ? "#ffffff" : colorHex;
+            statEl.textContent = status;
+            statEl.style.backgroundColor = bgHex;
+            statEl.style.color = colorHex;
+        }
+
+        function updateWaterQuality(ph) {
+            els.phVal.textContent = ph.toFixed(1);
+            
+            let status = "NORMAL";
+            let colorHex = "#34d399";
+            let bgHex = "rgba(16, 185, 129, 0.2)";
+
+            if (ph < 6.0 || ph > 9.0) {
+                status = "DANGER";
+                colorHex = "#fb7185";
+                bgHex = "rgba(244, 63, 94, 0.2)";
+            } else if (ph < 6.5 || ph > 8.5) {
+                status = "WARNING";
+                colorHex = "#fbbf24";
+                bgHex = "rgba(245, 158, 11, 0.2)";
+            }
+
+            els.phVal.style.color = status === "NORMAL" ? "#ffffff" : colorHex;
+            els.phStat.textContent = status;
+            els.phStat.style.backgroundColor = bgHex;
+            els.phStat.style.color = colorHex;
+        }
+
+        function appendHazardAlert(hazardKey) {
+            if (els.emptyState) {
+                els.emptyState.remove();
+                els.emptyState = null;
+            }
+
+            const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
+            const alertText = translations[currentLanguage][hazardKey] || hazardKey;
+
+            const li = document.createElement('li');
+            li.className = "hazard-enter";
+            li.style.cssText = "background-color: rgba(30, 41, 59, 0.8); padding: 0.75rem; border-radius: 0.5rem; border-left: 4px solid #f43f5e; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 0.25rem;";
+            
+            li.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #94a3b8; font-family: monospace;">
+                    <span>${timeString}</span>
+                    <span style="text-transform: uppercase; background-color: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 0.125rem 0.375rem; border-radius: 0.25rem;">Alert</span>
+                </div>
+                <div style="font-size: 0.875rem; font-weight: 600; color: #ffe4e6;" class="hazard-text" data-hazard-key="${hazardKey}">${alertText}</div>
+            `;
+
+            els.hazardFeed.prepend(li);
+
+            // Keep only latest 50 alerts to prevent memory bloat
+            if (els.hazardFeed.children.length > 50) {
+                els.hazardFeed.removeChild(els.hazardFeed.lastChild);
+            }
+        }
+
+        // --- 6. Edge Case Handling & Simulation ---
+        function toggleSimulation() {
+            isSimulating = !isSimulating;
+
+            if (isSimulating) {
+                els.simBtn.textContent = "Disable Simulation Mode";
+                els.simBtn.style.backgroundColor = "#e11d48"; // Rose
+                els.simBtn.classList.add("animate-pulse");
+                
+                els.sysStatText.textContent = "Simulation Mode Active";
+                els.sysStatText.style.color = "#c084fc"; // Purple
+                els.sysStatIndicator.innerHTML = `
+                    <span class="animate-ping" style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: #c084fc; opacity: 0.75;"></span>
+                    <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.75rem; width: 0.75rem; background-color: #a855f7;"></span>`;
+
+                generateDummyData();
+                simInterval = setInterval(generateDummyData, 3000);
+            } else {
+                els.simBtn.textContent = "Enable Simulation Mode";
+                els.simBtn.style.backgroundColor = "#2563eb"; // Blue
+                els.simBtn.classList.remove("animate-pulse");
+                
+                els.sysStatText.textContent = "Offline (Edge Mode)";
+                els.sysStatText.style.color = "#fbbf24"; // Amber
+                els.sysStatIndicator.innerHTML = `
+                    <span class="animate-ping" style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: #fbbf24; opacity: 0.75;"></span>
+                    <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.75rem; width: 0.75rem; background-color: #f59e0b;"></span>`;
+
+                clearInterval(simInterval);
+            }
+        }
+
+        function generateDummyData() {
+            const isHazardSpike = Math.random() > 0.7; // 30% chance for hazard
+            
+            const dummyPayload = {
+                air_pm25: isHazardSpike ? (30 + Math.random() * 40) : (10 + Math.random() * 20),
+                air_co: isHazardSpike ? (8 + Math.random() * 15) : (2 + Math.random() * 5),
+                water_ph: isHazardSpike ? (5 + Math.random() * 4.5) : (6.8 + Math.random() * 1.2),
+                vibration: isHazardSpike ? (9 + Math.random() * 15) : (1 + Math.random() * 6),
+                hazard_event: isHazardSpike ? hazardKeys[Math.floor(Math.random() * hazardKeys.length)] : null
+            };
+
+            updateDashboard(dummyPayload);
+        }
+    </script>
+</body>
+</html>
