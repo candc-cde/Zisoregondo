@@ -1,3 +1,64 @@
-Set up workflows for:
-Validating HTML/CSS
-Automatic deployment to GitHub Page
+name: Validate & Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate HTML & CSS
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install validation tools
+        run: |
+          npm install -g html-validate
+          npm install -g stylelint stylelint-config-standard
+      
+      - name: Validate HTML files
+        run: |
+          find . -name "*.html" -type f | grep -v node_modules | xargs html-validate --config .html-validate.json || true
+      
+      - name: Validate CSS files
+        run: |
+          if find . -name "*.css" -type f | grep -v node_modules | grep -q .; then
+            find . -name "*.css" -type f | grep -v node_modules | xargs stylelint || true
+          fi
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    name: Deploy to GitHub Pages
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
